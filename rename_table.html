@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ALTER TABLE SQL Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #FFFFFF;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    label {
+      font-weight: bold;
+      margin: 8px 0 4px;
+      display: block;
+      color: #444;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0,123,255,0.3);
+    }
+    button {
+      background: #007bff;
+      border: none;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    textarea {
+      resize: none;
+      height: 300px;
+      font-family: monospace;
+      font-size: 14px;
+      background: #f9f9f9;
+    }
+    #toast {
+      display: none;
+      min-width: 200px;
+      background: #28a745;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      opacity: 0.95;
+      font-weight: bold;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+      textarea {
+        height: 220px; 
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Rename TABLE SQL Generator</h2>
+
+    <label for="oldName">Old Table Name</label>
+    <input type="text" id="oldName" placeholder="e.g. users">
+
+    <label for="newName">New Table Name</label>
+    <input type="text" id="newName" placeholder="e.g. members">
+
+    <button id="generateBtn">Generate SQL</button>
+
+
+    <label for="sqlOutput">Generated SQL</label>
+    <textarea id="sqlOutput" readonly></textarea>
+        <button id="copyBtn" disabled>Copy SQL</button>
+  </div>
+
+  <div id="toast">Copied</div>
+
+
+<!-- Ads Code -->
+
+<script>
+(function(){
+  const pick = Math.floor(Math.random() * 3) + 1;
+  if (pick === 2) {
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = "https://js.mbidadm.com/static/scripts.js";
+    s.setAttribute("data-admpid", "374797");
+    document.head.appendChild(s);
+  }
+})();
+</script>
+  
+  
+  <!--  Ads Code -->
+  
+
+
+  <script>
+    const oldInput = document.getElementById('oldName');
+    const newInput = document.getElementById('newName');
+    const genBtn = document.getElementById('generateBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const sqlOutput = document.getElementById('sqlOutput');
+    const toast = document.getElementById('toast');
+
+    const identRegex = /^[A-Za-z0-9_$.]+$/;
+
+    function wrapIdentifier(name) {
+      return name.split('.').map(part => {
+        part = part.trim();
+        if (!part) return part;
+        if (part.startsWith('`') && part.endsWith('`')) return part;
+        return '`' + part.replace(/`/g, '``') + '`';
+      }).join('.');
+    }
+
+    genBtn.addEventListener('click', () => {
+      const oldName = oldInput.value.trim();
+      const newName = newInput.value.trim();
+
+      if (!oldName || !newName) {
+        sqlOutput.value = '-- Old or new table name is missing.';
+        copyBtn.disabled = true;
+        return;
+      }
+
+      if (!identRegex.test(oldName) || !identRegex.test(newName)) {
+        sqlOutput.value = '-- Invalid name: Use only A-Z, 0-9, underscore(_), dot(.), or $.';
+        copyBtn.disabled = true;
+        return;
+      }
+
+      sqlOutput.value = `ALTER TABLE ${wrapIdentifier(oldName)} RENAME TO ${wrapIdentifier(newName)};`;
+      copyBtn.disabled = false;
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(sqlOutput.value);
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 1500);
+      } catch (err) {
+        alert('Failed to copy');
+      }
+    });
+  </script>
+</body>
+</html>

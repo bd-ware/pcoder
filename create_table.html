@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">  
+<head>  
+  <meta charset="utf-8" />  
+  <meta name="viewport" content="width=device-width,initial-scale=1" />  
+  <title>SQL Table Generator</title>  
+
+  <style>  
+    body {  
+      font-family: Arial, sans-serif;  
+      background: #FFFFFF;  
+      margin: 0;  
+      padding: 20px;  
+      display: flex;  
+      justify-content: center;  
+    }  
+    .container {  
+      background: #fff;  
+      padding: 20px;  
+      border-radius: 12px;  
+      max-width: 500px;  
+      width: 100%;  
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);  
+    }  
+    h2 {  
+      text-align: center;  
+      margin-bottom: 20px;  
+      color: #333;  
+    }  
+    label {  
+      font-weight: bold;  
+      margin: 8px 0 4px;  
+      display: block;  
+      color: #444;  
+    }  
+    input, select, textarea, button {  
+      width: 100%;  
+      padding: 10px;  
+      border-radius: 8px;  
+      border: 1px solid #ccc;  
+      font-size: 16px;  
+      margin-bottom: 12px;  
+      box-sizing: border-box;  
+    }  
+    input:focus, select:focus, textarea:focus {  
+      outline: none;  
+      border-color: #007bff;  
+      box-shadow: 0 0 5px rgba(0,123,255,0.3);  
+    }  
+    button {  
+      background: #007bff;  
+      border: none;  
+      color: #fff;  
+      font-weight: bold;  
+      cursor: pointer;  
+      transition: 0.3s;  
+    }  
+    button:hover {  
+      background: #0056b3;  
+    }  
+    textarea {  
+      resize: none;  
+      height: 300px;  
+      font-family: monospace;  
+      font-size: 14px;  
+      background: #f9f9f9;  
+    }  
+    #toast {  
+      display: none;  
+      min-width: 200px;  
+      background: #28a745;  
+      color: #fff;  
+      text-align: center;  
+      border-radius: 8px;  
+      padding: 12px;  
+      position: fixed;  
+      bottom: 20px;  
+      left: 50%;  
+      transform: translateX(-50%);  
+      z-index: 9999;  
+      opacity: 0.95;  
+      font-weight: bold;  
+    }  
+    @media (max-width: 600px) {  
+      .container {  
+        padding: 15px;  
+      }  
+      textarea {  
+        height: 220px;  
+      }  
+    }  
+        .checkbox-row {  
+      display: flex;  
+      align-items: center;  
+      gap: 10px;  
+      margin: 15px 0;  
+      background: #f9f9f9;  
+      padding: 12px;  
+      border: 1px solid #ccc;  
+      border-radius: 8px;  
+    }  
+    .checkbox-row input {  
+      width: auto;  
+      transform: scale(1.3);  
+      cursor: pointer;  
+    }  
+    .checkbox-row label {  
+      margin: 0;  
+      font-weight: normal;  
+      color: #222;  
+      cursor: pointer;  
+    }  
+  </style>
+</head>  
+<body>  
+  <div class="container">  
+    <h2>SQL Table Generator</h2>  
+
+    <label>Table Name</label>  
+    <input id="tableName" type="text" placeholder="Example: users" />  
+
+<div class="checkbox-row">
+  <input type="checkbox" id="includeId" checked>
+  <label for="includeId">Add <b>id</b> (INT AUTO_INCREMENT PRIMARY KEY)</label>
+</div>
+
+    <label>Columns (Name + Type)</label>  
+    <div id="cols"></div>  
+    <button id="addCol">Add Column</button>  
+<button id="clearCols" style="background-color: red; color: white;">Clear All</button>
+    <button id="generate">Generate SQL</button>  
+    <label>Preview & Result</label>  
+    <textarea id="sqlOut" readonly></textarea>  
+
+
+    <button id="copy">Copy</button>  
+  </div>  
+
+  <div id="toast">Copied </div>  
+
+
+<!-- Ads Code -->
+
+<script>
+(function(){
+  const pick = Math.floor(Math.random() * 3) + 1;
+  if (pick === 2) {
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = "https://js.mbidadm.com/static/scripts.js";
+    s.setAttribute("data-admpid", "374797");
+    document.head.appendChild(s);
+  }
+})();
+</script>
+  
+  
+  <!--  Ads Code -->
+  
+
+
+
+
+  <script>  
+    const colsEl = document.getElementById('cols');  
+    const addColBtn = document.getElementById('addCol');  
+    const clearColsBtn = document.getElementById('clearCols');  
+    const generateBtn = document.getElementById('generate');  
+    const sqlOut = document.getElementById('sqlOut');  
+    const tableNameEl = document.getElementById('tableName');  
+    const includeIdEl = document.getElementById('includeId');  
+    const copyBtn = document.getElementById('copy');  
+    const toast = document.getElementById('toast');  
+  
+    const sqlTypes = [  
+      'INT','BIGINT','SMALLINT','TINYINT',  
+      'VARCHAR(255)','CHAR(10)','TEXT','DATE','DATETIME','TIMESTAMP','TIME',  
+      'BOOLEAN','FLOAT','DOUBLE','DECIMAL(10,2)'  
+    ].sort();  
+  
+
+    function createColRow(name = '', type = 'INT'){  
+      const row = document.createElement('div');  
+      row.style.display = "flex";  
+      row.style.flexDirection = "column";  
+      row.style.gap = "6px";  
+      row.style.marginBottom = "15px";  
+      row.style.padding = "10px";  
+      row.style.border = "1px solid #ddd";  
+      row.style.borderRadius = "8px";  
+      row.style.background = "#f9f9f9";  
+
+      const nameInput = document.createElement('input');  
+      nameInput.type = 'text';  
+      nameInput.placeholder = 'Column name (e.g., age)';  
+      nameInput.value = name;  
+
+      const typeSelect = document.createElement('select');  
+      sqlTypes.forEach(t => {   
+        const o = document.createElement('option');   
+        o.value = t;   
+        o.textContent = t;   
+        if(t===type)o.selected=true;   
+        typeSelect.appendChild(o);   
+      });  
+
+      const del = document.createElement('button');  
+      del.textContent = 'Delete';  
+      del.style.background = "#dc3545";  
+      del.style.marginTop = "6px";  
+      del.onclick = () => row.remove();  
+
+      row.appendChild(nameInput);  
+      row.appendChild(typeSelect);  
+      row.appendChild(del);  
+
+      colsEl.appendChild(row);  
+      return row;  
+    }  
+  
+    addColBtn.addEventListener('click', ()=> createColRow());  
+    clearColsBtn.addEventListener('click', ()=> { colsEl.innerHTML=''; });  
+  
+    function buildSQL(){  
+      const table = tableNameEl.value.trim() || 'my_table';  
+      const includeId = includeIdEl.checked;  
+      const rows = Array.from(colsEl.querySelectorAll('div'));  
+      const cols = [];  
+  
+      for(const r of rows){  
+        const name = r.querySelector('input[type=text]').value.trim();  
+        const type = r.querySelector('select').value;  
+        if(!name) continue;  
+        cols.push({name,type});  
+      }  
+  
+      const sb = [];  
+      sb.push('CREATE TABLE ' + table + ' (');  
+  
+      if(includeId){  
+        sb.push('    id INT AUTO_INCREMENT PRIMARY KEY' + (cols.length ? ',' : ''));  
+      }  
+  
+      cols.forEach((c, idx) => {  
+        const comma = (idx === cols.length-1) ? '' : ',';  
+        sb.push('    ' + c.name + ' ' + c.type + comma);  
+      });  
+  
+      sb.push(');');  
+      return sb.join('\n');  
+    }  
+  
+    generateBtn.addEventListener('click', ()=> { sqlOut.value = buildSQL(); });  
+  
+    copyBtn.addEventListener('click', async ()=> {  
+      const txt = sqlOut.value;  
+      if(!txt) return alert('Nothing to copy — generate first.');  
+      try{  
+        await navigator.clipboard.writeText(txt);  
+        toast.style.display = "block";  
+        setTimeout(()=> toast.style.display="none",2000);  
+      }catch(e){  
+        alert('Copy failed — browser not supported.');  
+      }  
+    });  
+  
+    sqlOut.value = '';  
+  </script>  
+</body>  
+</html>
