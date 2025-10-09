@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pcoder - PHP & SQL Code  Genartor</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  
+  <style>
+    :root {
+      --primary: #6C63FF;
+      --primary-light: #8B85FF;
+      --primary-dark: #5A52D9;
+      --secondary: #FF6B8B;
+      --accent: #00C9B7;
+      --light: #FFFFFF;
+      --light-gray: #F8FAFC;
+      --medium-gray: #E2E8F0;
+      --dark: #1E293B;
+      --text: #475569;
+      --text-light: #64748B;
+      --success: #10B981;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      --card-shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+      --gradient: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      --gradient-light: linear-gradient(135deg, #F0F4FF 0%, #F0FFF4 100%);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--light-gray);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%236c63ff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    /* Header */
+    .header {
+      padding: 25px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    
+    .logo-img {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: var(--gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 5px 15px rgba(108, 99, 255, 0.2);
+      transition: var(--transition);
+    }
+    
+    .logo:hover .logo-img {
+      transform: rotate(10deg);
+    }
+    
+    .logo-img img {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+    }
+    
+    .logo-text {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--dark);
+    }
+    
+    .logo-highlight {
+      color: var(--primary);
+    }
+    
+    .nav-links {
+      display: none;
+    }
+    
+    @media (min-width: 768px) {
+      .nav-links {
+        display: flex;
+        gap: 30px;
+      }
+      
+      .nav-links a {
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--transition);
+        position: relative;
+        padding: 8px 0;
+      }
+      
+      .nav-links a:hover {
+        color: var(--primary);
+      }
+      
+      .nav-links a::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--gradient);
+        transition: var(--transition);
+      }
+      
+      .nav-links a:hover::after {
+        width: 100%;
+      }
+    }
+    
+    /* Hero Section */
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .hero h1 {
+      font-size: 3.2rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      line-height: 1.2;
+      color: var(--dark);
+    }
+    
+    .hero-highlight {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-light);
+      margin-bottom: 40px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    /* Download Section */
+    .download-section {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      margin: 60px 0;
+    }
+    
+    @media (min-width: 992px) {
+      .download-section {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+    }
+    
+    .download-card {
+      background: var(--light);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      border: 1px solid var(--medium-gray);
+      flex: 1;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .download-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: var(--gradient);
+    }
+    
+    .download-card:hover {
+      transform: translateY(-10px);
+      box-shadow: var(--card-shadow-hover);
+    }
+    
+    .app-icon-large {
+      width: 120px;
+      height: 120px;
+      border-radius: 24px;
+      background: var(--light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 30px;
+      box-shadow: 0 10px 30px rgba(108, 99, 255, 0.15);
+      border: 1px solid var(--medium-gray);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .app-icon-large img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+    }
+    
+    .download-info {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .download-info h2 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: var(--dark);
+    }
+    
+    .version {
+      color: var(--text-light);
+      margin-bottom: 15px;
+      font-size: 1rem;
+    }
+    
+    .file-size {
+      background: rgba(108, 99, 255, 0.1);
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      color: var(--primary);
+      font-weight: 500;
+    }
+    
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gradient);
+      color: white;
+      padding: 18px 40px;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: var(--transition);
+      box-shadow: 0 5px 20px rgba(108, 99, 255, 0.3);
+      border: none;
+      margin-bottom: 20px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      font-size: 1.1rem;
+    }
+    
+    .btn-download::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .btn-download:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(108, 99, 255, 0.4);
+    }
+    
+    .btn-download:hover::before {
+      left: 100%;
+    }
+    
+    .btn-download i {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
+    
+    .secondary-link {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 10px;
+      transition: var(--transition);
+    }
+    
+    .secondary-link:hover {
+      color: var(--primary);
+    }
+    
+    /* Features Section */
+    .features-section {
+      margin: 80px 0;
+    }
+    
+    .section-title {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 60px;
+      font-weight: 700;
+      color: var(--dark);
+      position: relative;
+      display: inline-block;
+    }
+    
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: var(--gradient);
+      border-radius: 2px;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+    
+    @media (min-width: 768px) {
+      .features-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    
+    @media (min-width: 1200px) {
+      .features-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+      }
+    }
+    
+    .feature-card {
+      background: var(--light);
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      transition: var(--transition);
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--medium-gray);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--gradient);
+      transform: scaleX(0);
+      transition: var(--transition);
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-10px);
+      box-shadow: var(--card-shadow-hover);
+    }
+    
+    .feature-card:hover::before {
+      transform: scaleX(1);
+    }
+    
+    .feature-icon {
+      width: 70px;
+      height: 70px;
+      border-radius: 18px;
+      background: rgba(108, 99, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 1.8rem;
+      color: var(--primary);
+      transition: var(--transition);
+    }
+    
+    .feature-card:hover .feature-icon {
+      background: var(--gradient);
+      color: white;
+      transform: scale(1.1);
+    }
+    
+    .feature-card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+      color: var(--dark);
+    }
+    
+    .feature-card p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+    }
+    
+    /* Info Section */
+    .info-section {
+      background: var(--light);
+      border-radius: 20px;
+      padding: 40px;
+      margin: 60px 0;
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--medium-gray);
+    }
+    
+    .info-section h2 {
+      font-size: 1.8rem;
+      margin-bottom: 25px;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .info-section h2 i {
+      color: var(--primary);
+    }
+    
+    .info-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+    
+    @media (min-width: 768px) {
+      .info-list {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    
+    .info-list li {
+      padding: 15px;
+      border-radius: 10px;
+      background: var(--light-gray);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: var(--transition);
+    }
+    
+    .info-list li:hover {
+      background: rgba(108, 99, 255, 0.05);
+    }
+    
+    .info-list li i {
+      color: var(--success);
+      font-size: 1rem;
+    }
+    
+
+    
+    .footer-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .footer-logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--dark);
+    }
+    
+    .footer-logo-highlight {
+      color: var(--primary);
+    }
+    
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    
+    .footer-links a {
+      color: var(--text-light);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+    
+    .copyright {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      margin-top: 20px;
+    }
+    
+    /* Animation */
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    .floating {
+      animation: float 5s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+
+    <section class="hero">
+      <h2>PHP & SQL Code Generation, <span class="hero-highlight">Pcoder</span>
+            <h5>Powered By - Bd Ware</h5></h2>
+    </section>
+
+    <section class="download-section">
+      <div class="download-card floating">
+        <div class="app-icon-large">
+          <img src="logo.png" alt="Pcoder App Icon">
+        </div>
+        <div class="download-info">
+          <h2>Pcoder</h2>
+          <div class="version">Version 1.0.0</div>
+          <div class="file-size">APK • 8.5 MB</div>
+        </div>
+        <a href="Pcoder.apk" class="btn-download"><i class="fas fa-download"></i> Download Now</a>
+
+      </div>
+
+      <div class="info-section">
+        <h2><i class="fas fa-info-circle"></i> App Information</h2>
+        <ul class="info-list">
+          <li><i class="fas fa-check"></i> Requires Android 5.0 or higher</li>
+          <li><i class="fas fa-check"></i> No additional permissions required</li>
+          <li><i class="fas fa-check"></i> Full Free</li>
+          <li><i class="fas fa-check"></i> Regular updates with new features</li>
+          <li><i class="fas fa-check"></i> 100% safe and virus-free</li>
+          <li><i class="fas fa-check"></i> Lightweight and fast</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="features-section">
+      <h2 class="section-title">What's New in Version 1.0.0</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <h3>PHP Code Generation</h3>
+          <p>Generate PHP CRUD, Login, Config within seconds with optimized code.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-database"></i>
+          </div>
+          <h3>SQL Code Generation</h3>
+          <p>Create, Delete, Modify Database & Insert Data with efficient queries.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-lock"></i>
+          </div>
+          <h3>Secure Code</h3>
+          <p>All generated code is safe, optimized and follows best practices.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-rocket"></i>
+          </div>
+          <h3>Performance Boost</h3>
+          <p>Improved performance and faster code generation algorithms.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const featureCards = document.querySelectorAll('.feature-card');
+      featureCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.2}s`;
+        card.classList.add('floating');
+      });
+    });
+    document.getElementById('downloadBtn').addEventListener('click', function(e){
+  e.preventDefault();
+  const fileUrl = "Pcoder.apk";
+  const redirectUrl = "https://example.com/after-download";
+
+
+  const iframe = document.createElement('iframe');
+  iframe.style.display = "none";
+  iframe.src = fileUrl;
+  document.body.appendChild(iframe);
+
+
+  setTimeout(()=>{
+    window.location.href = redirectUrl;
+  }, 1500);
+});
+  </script>
+</body>
+</html>
