@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PHP Get Data Generator </title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #FFFFFF;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    label {
+      font-weight: bold;
+      margin: 8px 0 4px;
+      display: block;
+      color: #444;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0,123,255,0.3);
+    }
+    button {
+      background: #007bff;
+      border: none;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    textarea {
+      resize: none;
+      height: 300px; /* Bigger code box */
+      font-family: monospace;
+      font-size: 14px;
+      background: #f9f9f9;
+    }
+    #toast {
+      display: none;
+      min-width: 200px;
+      background: #28a745;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      opacity: 0.95;
+      font-weight: bold;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+      textarea {
+        height: 220px; 
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>PHP Get All Data Code Generator</h2>
+    
+    <label>Table Name</label>
+    <input type="text" id="table" placeholder="Enter Table Name">
+
+    <label>Mode</label>
+    <select id="mode">
+      <option value="normal">Normal (ASC)</option>
+      <option value="reverse">Reverse (DESC)</option>
+    </select>
+
+    <button onclick="generatePHP()">Generate PHP</button>
+
+    <textarea id="output" readonly placeholder="Generated PHP Code will appear here..."></textarea>
+
+    <button onclick="copyCode()">Copy Code</button>
+  </div>
+
+  <div id="toast">PHP Code Copied!</div>
+
+
+
+<!-- Ads Code -->
+
+<script>
+(function(){
+  const pick = Math.floor(Math.random() * 3) + 1;
+  if (pick === 2) {
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = "https://js.mbidadm.com/static/scripts.js";
+    s.setAttribute("data-admpid", "374797");
+    document.head.appendChild(s);
+  }
+})();
+</script>
+  
+  
+  <!--  Ads Code -->
+  
+
+
+
+
+
+  <script>
+    function generatePHP() {
+      let table = document.getElementById("table").value;
+      let mode = document.getElementById("mode").value;
+      let orderType = (mode === "reverse") ? "DESC" : "ASC";
+
+      let code = "<?php\n";
+      code += "if ($_SERVER['REQUEST_METHOD'] !== 'GET') {\n";
+      code += "    echo \"Access Denied\";\n";
+      code += "    exit();\n";
+      code += "}\n\n";
+      code += "include 'config.php';\n\n";
+      code += "// Get all columns\n";
+      code += "$sql = \"SELECT * FROM " + table + "\";\n";
+      code += "$result = $conn->query($sql);\n\n";
+      code += "if ($result->num_rows > 0) {\n";
+      code += "    $rows = array();\n";
+      code += "    while($row = $result->fetch_assoc()) {\n";
+      code += "        $rows[] = $row;\n";
+      code += "    }\n";
+      code += "    if ('" + mode + "' === 'reverse') {\n";
+      code += "        $rows = array_reverse($rows);\n";
+      code += "    }\n";
+      code += "    header('Content-Type: application/json');\n";
+      code += "    echo json_encode($rows);\n";
+      code += "} else {\n";
+      code += "    echo \"No Data Found\";\n";
+      code += "}\n\n";
+      code += "$conn->close();\n";
+      code += "?>";
+
+      document.getElementById("output").value = code;
+    }
+
+    function copyCode() {
+      let textarea = document.getElementById("output");
+      textarea.select();
+      textarea.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      showToast();
+    }
+
+    function showToast() {
+      let toast = document.getElementById("toast");
+      toast.style.display = "block";
+      setTimeout(function() {
+        toast.style.display = "none";
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
