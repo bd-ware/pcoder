@@ -148,7 +148,7 @@
       code += "    exit();\n";
       code += "}\n\n";
       code += "include 'config.php';\n\n";
-      code += "// Get all columns\n";
+      
       code += "$sql = \"SELECT * FROM " + table + "\";\n";
       code += "$result = $conn->query($sql);\n\n";
       code += "if ($result->num_rows > 0) {\n";
