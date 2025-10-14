@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PHP File Upload Code Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #FFFFFF;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    label {
+      font-weight: bold;
+      margin: 8px 0 4px;
+      display: block;
+      color: #444;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0,123,255,0.3);
+    }
+    button {
+      background: #007bff;
+      border: none;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    textarea {
+      resize: none;
+      height: 300px;
+      font-family: monospace;
+      font-size: 14px;
+      background: #f9f9f9;
+    }
+    #toast {
+      display: none;
+      min-width: 200px;
+      background: #28a745;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      opacity: 0.95;
+      font-weight: bold;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+      textarea {
+        height: 220px; 
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>PHP File Upload Code Generator</h2>
+    
+    <label>Folder Name</label>
+    <input type="text" id="folder" placeholder="Enter folder name">
+
+    <label>Success Message</label>
+    <input type="text" id="successMsg" placeholder="e.g. Upload Successful">
+
+    <label>Error Message</label>
+    <input type="text" id="errorMsg" placeholder="e.g. Upload Failed">
+
+    <button onclick="generatePHP()">Generate PHP</button>
+
+    <textarea id="output" readonly placeholder="Generated PHP Code will appear here..."></textarea>
+
+    <button onclick="copyCode()">Copy Code</button>
+  </div>
+
+  <div id="toast">PHP Code Copied!</div>
+
+
+
+<!-- Ads Code -->
+
+<script>
+(function(){
+  const pick = Math.floor(Math.random() * 3) + 1;
+  if (pick === 2) {
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = "https://js.mbidadm.com/static/scripts.js";
+    s.setAttribute("data-admpid", "374797");
+    document.head.appendChild(s);
+  }
+})();
+</script>
+  
+  
+  <!--  Ads Code -->
+  
+  <script>
+    function generatePHP() {
+      let folder = document.getElementById("folder").value;
+      let successMsg = document.getElementById("successMsg").value.replace(/"/g, '\\"');
+      let errorMsg = document.getElementById("errorMsg").value.replace(/"/g, '\\"');
+      let php = [];
+
+      php.push("<?php");
+      php.push("$target_dir = \"" + folder + "/\"; // ensure this folder exists and is writable");
+      php.push("$target_file = $target_dir . basename($_FILES[\"file\"][\"name\"]);");
+      php.push("");
+      php.push("if (move_uploaded_file($_FILES[\"file\"][\"tmp_name\"], $target_file)) {");
+      php.push("    echo \"" + successMsg + "\";");
+      php.push("} else {");
+      php.push("    echo \"" + errorMsg + "\";");
+      php.push("}");
+      php.push("?>");
+
+      document.getElementById("output").value = php.join("\n");
+    }
+
+    function copyCode() {
+      let textarea = document.getElementById("output");
+      textarea.select();
+      textarea.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      showToast();
+    }
+
+    function showToast() {
+      let toast = document.getElementById("toast");
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 2000);
+    }
+  </script>
+</body>
+</html>
