@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>PHP Insert Code Generator</title>
+  <title>PHP Insert Code Generator + Auto Table</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -58,15 +58,29 @@
     }
     textarea {
       resize: none;
-      height: 300px; /* Bigger code box */
+      height: 300px;
       font-family: monospace;
       font-size: 14px;
       background: #f9f9f9;
     }
+    .checkbox-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0 15px 0;
+      padding: 8px;
+      background: #f8f8f8;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    .checkbox-area input {
+      width: auto;
+      transform: scale(1.3);
+    }
     #toast {
       display: none;
-      min-width: 200px;
-      background: #28a745;
+      min-width: 240px;
+      background: #333;
       color: #fff;
       text-align: center;
       border-radius: 8px;
@@ -79,20 +93,19 @@
       opacity: 0.95;
       font-weight: bold;
     }
+    #toast.success { background: #28a745; }
+    #toast.error { background: #dc3545; }
+
     @media (max-width: 600px) {
-      .container {
-        padding: 15px;
-      }
-      textarea {
-        height: 220px; 
-      }
+      .container { padding: 15px; }
+      textarea { height: 220px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>PHP Insert Code Generator</h2>
-    
+
     <label>Table Name</label>
     <input type="text" id="table" placeholder="Enter Table Name">
 
@@ -111,6 +124,11 @@
       <option value="secure">Secure (Hide DB error)</option>
     </select>
 
+    <div class="checkbox-area">
+      <input type="checkbox" id="autoTable" checked>
+      <label for="autoTable" style="margin:0; font-weight:normal;">Auto Create Table if Not Exist</label>
+    </div>
+
     <button onclick="generatePHP()">Generate PHP</button>
 
     <textarea id="output" readonly placeholder="Generated PHP Code will appear here..."></textarea>
@@ -118,49 +136,55 @@
     <button onclick="copyCode()">Copy Code</button>
   </div>
 
-  <div id="toast">PHP Code Copied!</div>
-
-<!-- Ads Code -->
-
-<script>
-(function(){
-  const pick = Math.floor(Math.random() * 3) + 1;
-  if (pick === 2) {
-    const s = document.createElement('script');
-    s.async = true;
-    s.src = "https://js.mbidadm.com/static/scripts.js";
-    s.setAttribute("data-admpid", "374797");
-    document.head.appendChild(s);
-  }
-})();
-</script>
-  
-  
-  <!--  Ads Code -->
-  
-
-
-
-
-
-
+  <div id="toast"></div>
 
   <script>
     function generatePHP() {
-      let table = document.getElementById("table").value;
+      let table = document.getElementById("table").value.trim();
       let columns = document.getElementById("columns").value.replace(/\s/g, "").split(",");
       let sres = document.getElementById("sres").value.replace(/"/g, '\\"');
       let fres = document.getElementById("fres").value.replace(/"/g, '\\"');
       let mode = document.getElementById("mode").value;
+      let autoTable = document.getElementById("autoTable").checked;
+
+      if (!table || columns.length === 0 || columns[0] === "") {
+        showToast("Please fill all fields!", "error");
+        return;
+      }
 
       let code = "<?php\n";
       code += "if ($_SERVER['REQUEST_METHOD'] !== 'POST') {\n";
-      code += "    echo \"Access Denied\";\n";
+      code += "    echo 'Access Denied';\n";
       code += "    exit();\n";
       code += "}\n\n";
       code += "include 'config.php';\n\n";
 
-      // Validation loop
+      if (autoTable) {
+        code += "$checkTable = $conn->query(\"SHOW TABLES LIKE '" + table + "'\");\n";
+        code += "if ($checkTable->num_rows == 0) {\n";
+        code += "    $create = \"CREATE TABLE " + table + " (id INT AUTO_INCREMENT PRIMARY KEY";
+        for (let col of columns) {
+          code += ", " + col + " TEXT";
+        }
+        code += ")\";\n";
+        code += "    $conn->query($create);\n";
+        code += "} else {\n";
+        code += "    $existingCols = [];\n";
+        code += "    $res = $conn->query(\"SHOW COLUMNS FROM " + table + "\");\n";
+        code += "    while ($r = $res->fetch_assoc()) { $existingCols[] = $r['Field']; }\n";
+        code += "    foreach (array(";
+        for (let i = 0; i < columns.length; i++) {
+          code += "'" + columns[i] + "'";
+          if (i < columns.length - 1) code += ", ";
+        }
+        code += ") as $col) {\n";
+        code += "        if (!in_array($col, $existingCols)) {\n";
+        code += "            $conn->query(\"ALTER TABLE " + table + " ADD `$col` TEXT\");\n";
+        code += "        }\n";
+        code += "    }\n";
+        code += "}\n\n";
+      }
+
       code += "foreach(array(";
       for (let i = 0; i < columns.length; i++) {
         code += "'" + columns[i] + "'";
@@ -168,30 +192,20 @@
       }
       code += ") as $field) {\n";
       code += "    if(!isset($_POST[$field]) || trim($_POST[$field]) == '') {\n";
-      code += "        echo $field.\" is required\";\n";
+      code += "        echo $field . ' is required';\n";
       code += "        exit();\n";
       code += "    }\n";
       code += "}\n\n";
 
-      // SQL Query
-      code += "$sql = \"INSERT INTO " + table + " (";
-      code += columns.join(", ");
-      code += ") VALUES (";
-      code += columns.map(() => "?").join(", ");
-      code += ")\";\n\n";
-
+      code += "$sql = \"INSERT INTO " + table + " (" + columns.join(", ") + ") VALUES (" + columns.map(() => "?").join(", ") + ")\";\n\n";
       code += "$stmt = $conn->prepare($sql);\n";
       code += "if ($stmt) {\n";
-
-      // Bind param
       code += "    $stmt->bind_param(\"" + "s".repeat(columns.length) + "\", ";
       for (let i = 0; i < columns.length; i++) {
         code += "$_POST['" + columns[i] + "']";
         if (i < columns.length - 1) code += ", ";
       }
-      code += ");\n\n";
-
-      // Execute
+      code += ");\n";
       code += "    if ($stmt->execute()) {\n";
       code += "        echo \"" + sres + "\";\n";
       if (mode === "debug") {
@@ -221,15 +235,15 @@
       textarea.select();
       textarea.setSelectionRange(0, 99999);
       document.execCommand("copy");
-      showToast();
+      showToast("PHP code copied!", "success");
     }
 
-    function showToast() {
+    function showToast(msg, type = "success") {
       let toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.className = type === "error" ? "error" : "success";
       toast.style.display = "block";
-      setTimeout(function() {
-        toast.style.display = "none";
-      }, 2000);
+      setTimeout(() => toast.style.display = "none", 2000);
     }
   </script>
 </body>
