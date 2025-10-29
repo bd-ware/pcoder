@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login PHP Code Generator</title>
+<style>
+body{font-family:Arial,sans-serif;background:#fff;margin:0;padding:20px;display:flex;justify-content:center}
+.container{background:#fff;padding:20px;border-radius:12px;max-width:650px;width:100%;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+h2{text-align:center;margin-bottom:20px;color:#333}
+label{font-weight:bold;margin:8px 0 4px;display:block;color:#444}
+input,select,textarea,button{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:16px;margin-bottom:12px;box-sizing:border-box}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#007bff;box-shadow:0 0 5px rgba(0,123,255,0.3)}
+button{background:#007bff;border:none;color:#fff;font-weight:bold;cursor:pointer;transition:0.3s}
+button:hover{background:#0056b3}
+textarea{resize:none;height:350px;font-family:monospace;font-size:14px;background:#f9f9f9}
+.col-row{display:flex;flex-direction:column;gap:6px;margin-bottom:15px;padding:10px;border:1px solid #ddd;border-radius:8px;background:#f9f9f9}
+.col-row button{background:#dc3545;color:#fff;margin-top:5px;border:none;border-radius:6px;cursor:pointer}
+#toast{display:none;min-width:200px;background:#28a745;color:#fff;text-align:center;border-radius:8px;padding:12px;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;opacity:.95;font-weight:bold}
+#addCol,#clearCols{padding:12px 0;border-radius:8px;font-size:16px;font-weight:bold;border:none;cursor:pointer;transition:0.3s;width:100%;box-sizing:border-box}
+#addCol{background:#007bff;color:#fff;margin-bottom:10px}
+#addCol:hover{background:#0056b3}
+#clearCols{background:#dc3545;color:#fff;margin-bottom:10px}
+#clearCols:hover{background:#a71d2a}
+@media (min-width:641px){#addCol,#clearCols{width:auto;display:inline-block;padding:10px 12px;margin-right:10px}}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Login PHP Code Generator</h2>
+
+<label>Table Name</label>
+<input type="text" id="tableName" placeholder="e.g. users">
+
+<label>When User Found</label>
+<input type="text" id="foundMsg" placeholder="e.g. Login successful">
+
+<label>When User Not Found</label>
+<input type="text" id="notFoundMsg" placeholder="e.g. User not found">
+
+<div id="columnsContainer"></div>
+
+<button id="addCol">Add Column</button>
+<button id="clearCols">Clear All</button>
+<button onclick="generateCode()">Generate PHP</button>
+
+<textarea id="output" readonly placeholder="Generated PHP code will appear here..."></textarea>
+<button onclick="copyCode()">Copy Code</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+function showToast(msg,color="#28a745"){
+  const t=document.getElementById('toast');
+  t.style.background=color;
+  t.innerText=msg;
+  t.style.display='block';
+  setTimeout(()=>t.style.display='none',3000);
+}
+
+document.getElementById("addCol").addEventListener("click",()=>{
+  const div=document.createElement("div");
+  div.className="col-row";
+  div.innerHTML=`<input type="text" placeholder="Column Name">
+  <button onclick="this.parentElement.remove()">Delete</button>`;
+  document.getElementById("columnsContainer").appendChild(div);
+});
+
+document.getElementById("clearCols").addEventListener("click",()=>{
+  document.getElementById("columnsContainer").innerHTML="";
+  showToast("All columns cleared!","#dc3545");
+});
+
+function generateCode(){
+  const table=document.getElementById("tableName").value.trim();
+  const found=document.getElementById("foundMsg").value.trim();
+  const notFound=document.getElementById("notFoundMsg").value.trim();
+  const cols=[...document.querySelectorAll(".col-row input")].map(i=>i.value.trim()).filter(v=>v);
+
+  if(!table||!found||!notFound||cols.length===0){
+    showToast("Please fill all fields!","#dc3545");
+    return;
+  }
+
+  let missingCheck=`$missing = [];\n\n`;
+  cols.forEach(c=>{
+    missingCheck+=`if (!isset($_POST['${c}']) || trim($_POST['${c}']) === '') {\n    $missing[] = '${c}';\n}\n`;
+  });
+
+  let collectData=cols.map(c=>`$${c} = trim($_POST['${c}']);`).join("\n");
+  let whereClause=cols.map(c=>`${c} = ?`).join(" AND ");
+  let executeArr=cols.map(c=>`$${c}`).join(", ");
+
+  const php=`<?php
+header('Content-Type: text/plain');
+include 'config.php';
+
+${missingCheck}
+if (!empty($missing)) {
+    echo "All fields are required";
+    exit;
+}
+
+${collectData}
+
+$stmt = $conn->prepare("SELECT * FROM ${table} WHERE ${whereClause} LIMIT 1");
+$stmt->bind_param('${'s'.repeat(cols.length)}', ${executeArr});
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    echo "${found}";
+} else {
+    echo "${notFound}";
+}
+?>`;
+
+  document.getElementById("output").value=php;
+  // No toast on code generation as per request
+}
+
+function copyCode(){
+  const txt=document.getElementById("output");
+  if(!txt.value.trim()){showToast("Nothing to copy!","#dc3545");return;}
+  navigator.clipboard.writeText(txt.value);
+  showToast("Code copied!");
+}
+</script>
+</body>
+</html>
