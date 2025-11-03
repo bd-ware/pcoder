@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHP Insert Generator with Header Auth</title>
+<style>
+body{font-family:Arial,sans-serif;background:#fff;margin:0;padding:20px;display:flex;flex-direction:column;align-items:center;gap:15px}
+.container{background:#fff;padding:18px;border-radius:10px;width:90%;max-width:500px;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+h2{text-align:center;margin-bottom:12px;color:#333}
+label{font-weight:bold;margin:6px 0 4px;display:block;color:#444}
+input,textarea,button,select{width:100%;padding:10px;border-radius:6px;border:1px solid #ccc;font-size:15px;margin-bottom:10px;box-sizing:border-box}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#007bff;box-shadow:0 0 3px rgba(0,123,255,0.2)}
+button{background:#007bff;border:none;color:#fff;font-weight:bold;cursor:pointer;transition:0.3s}
+button:hover{background:#0056b3}
+textarea{resize:none;height:220px;font-family:monospace;font-size:14px;background:#f9f9f9}
+#toast{display:none;min-width:200px;background:#28a745;color:#fff;text-align:center;border-radius:8px;padding:12px;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;opacity:.95;font-weight:bold}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>Access Config</h2>
+<label>Access Table Name</label>
+<input type="text" id="adminTable" placeholder="e.g. admin">
+
+<label>Token Column Name</label>
+<input type="text" id="adminColumn" placeholder="e.g. token">
+
+<label>Auth Failed Message</label>
+<input type="text" id="authFailedMsg" placeholder="e.g. Auth Failed">
+</div>
+
+<div class="container">
+<h2>Insert Config</h2>
+<label>Insert Table Name</label>
+<input type="text" id="table" placeholder="e.g. users">
+
+<label>Columns (comma separated)</label>
+<input type="text" id="columns" placeholder="e.g. name,email,password">
+
+<label>Success Message</label>
+<input type="text" id="sres" placeholder="e.g. Inserted Successfully">
+
+<label>Failed Message</label>
+<input type="text" id="fres" placeholder="e.g. Insert Failed">
+
+<label>Mode</label>
+<select id="mode">
+<option value="debug">Debug (Show DB error)</option>
+<option value="secure">Secure (Hide DB error)</option>
+</select>
+</div>
+
+<div class="container">
+<button onclick="generateCode()">Generate PHP</button>
+<textarea id="output" readonly placeholder="Generated PHP code will appear here..."></textarea>
+<button onclick="copyCode()">Copy Code</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+function showToast(msg,color="#28a745"){
+  const t=document.getElementById('toast');
+  t.style.background=color;
+  t.innerText=msg;
+  t.style.display='block';
+  setTimeout(()=>t.style.display='none',3000);
+}
+
+function generateCode(){
+  const adminTable=document.getElementById("adminTable").value.trim();
+  const adminColumn=document.getElementById("adminColumn").value.trim();
+  const authFailed=document.getElementById("authFailedMsg").value.trim();
+  const table=document.getElementById("table").value.trim();
+  const columns=document.getElementById("columns").value.replace(/\s/g,"").split(",");
+  const sres=document.getElementById("sres").value.trim();
+  const fres=document.getElementById("fres").value.trim();
+  const mode=document.getElementById("mode").value;
+
+  if(!adminTable || !adminColumn || !authFailed || !table || columns.length===0 || !sres || !fres){
+    showToast("Please fill all fields!","#dc3545");
+    return;
+  }
+
+  let code="<?php\n";
+  code+="include 'config.php';\n\n";
+  code+="if($_SERVER['REQUEST_METHOD']!=='POST'){\n  echo 'Access Denied';\n  exit();\n}\n\n";
+  code+="$authHeader='';\n";
+  code+="if(isset($_SERVER['HTTP_AUTHORIZATION'])) $authHeader=$_SERVER['HTTP_AUTHORIZATION'];\n";
+  code+="elseif(isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) $authHeader=$_SERVER['REDIRECT_HTTP_AUTHORIZATION'];\n";
+  code+="if($authHeader===''){ echo '"+authFailed+"'; exit(); }\n";
+  code+="if(stripos($authHeader,'bearer ')===0) $token=trim(substr($authHeader,7)); else $token=$authHeader;\n";
+  code+="if($token===''){ echo '"+authFailed+"'; exit(); }\n\n";
+  code+="$stmt=$conn->prepare(\"SELECT id FROM `"+adminTable+"` WHERE `"+adminColumn+"`=? LIMIT 1\");\n";
+  code+="$stmt->bind_param('s',$token);\n";
+  code+="$stmt->execute();\n";
+  code+="$stmt->store_result();\n";
+  code+="if($stmt->num_rows===0){ echo '"+authFailed+"'; $stmt->close(); exit(); }\n";
+  code+="$stmt->close();\n\n";
+
+  code+="foreach(array(";
+  columns.forEach((col,i)=>{ code+="'"+col+"'"+(i<columns.length-1?", ":""); });
+  code+=") as $field){\n  if(!isset($_POST[$field])||trim($_POST[$field])==''){ echo $field.' is required'; exit(); }\n}\n\n";
+
+  code+="$sql=\"INSERT INTO `"+table+"` ("+columns.join(", ")+") VALUES ("+columns.map(()=>"?").join(", ")+")\";\n";
+  code+="$stmt=$conn->prepare($sql);\n";
+  code+="if($stmt){\n  $stmt->bind_param('"+'s'.repeat(columns.length)+"', ";
+  columns.forEach((col,i)=>{ code+="$_POST['"+col+"']"+(i<columns.length-1?", ":""); });
+  code+=");\n  if($stmt->execute()) echo '"+sres+"';\n";
+  if(mode==="debug") code+="  else echo '"+fres+" - '.$stmt->error;\n";
+  else code+="  else echo '"+fres+"';\n";
+  code+="$stmt->close();\n} else {\n";
+  if(mode==="debug") code+="echo '"+fres+" - '.$conn->error;\n";
+  else code+="echo '"+fres+"';\n";
+  code+="}\n$conn->close();\n?>";
+
+  document.getElementById("output").value=code;
+}
+
+function copyCode(){
+  const txt=document.getElementById("output");
+  if(!txt.value.trim()){ showToast("Nothing to copy!","#dc3545"); return; }
+  navigator.clipboard.writeText(txt.value);
+  showToast("Code copied!");
+}
+</script>
+
+
+
+
+
+<div id="footer"></div>
+
+<script>
+fetch('permission.html')
+.then(response => response.text())
+.then(data => document.getElementById('footer').innerHTML = data);
+</script>
+
+
+
+
+
+
+
+</body>
+</html>

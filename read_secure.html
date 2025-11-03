@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Token Auth PHP Generator with ASC/DESC</title>
+<style>
+body{font-family:Arial,sans-serif;background:white;margin:0;padding:20px;display:flex;flex-direction:column;align-items:center;gap:15px}
+.container{background:#fff;padding:18px;border-radius:10px;width:90%;max-width:500px;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+h2{text-align:center;margin-bottom:12px;color:#333}
+label{font-weight:bold;margin:6px 0 4px;display:block;color:#444}
+input,textarea,button,select{width:100%;padding:10px;border-radius:6px;border:1px solid #ccc;font-size:15px;margin-bottom:10px;box-sizing:border-box}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#007bff;box-shadow:0 0 3px rgba(0,123,255,0.2)}
+button{background:#007bff;border:none;color:#fff;font-weight:bold;cursor:pointer;transition:0.3s}
+button:hover{background:#0056b3}
+textarea{resize:none;height:220px;font-family:monospace;font-size:14px;background:#f9f9f9}
+#toast{display:none;min-width:200px;background:#28a745;color:#fff;text-align:center;border-radius:8px;padding:12px;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;opacity:.95;font-weight:bold}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>Access Config</h2>
+<label>Access Table Name</label>
+<input type="text" id="adminTable" placeholder="e.g. admin" >
+
+<label>Access Token Column Name</label>
+<input type="text" id="adminColumn" placeholder="e.g. token" >
+
+<label>Auth Failed Message</label>
+<input type="text" id="authFailedMsg" placeholder="e.g. Auth Failed: Token mismatch" >
+</div>
+
+<div class="container">
+<h2>Read Data Config</h2>
+<label> Table Name</label>
+<input type="text" id="usersTable" placeholder="e.g. users" >
+
+<label>No Data Found Message</label>
+<input type="text" id="noUsersMsg" placeholder="e.g. No Users Found" >
+
+<label>Order Mode</label>
+<select id="orderMode">
+  <option value="asc">Normal (ASC)</option>
+  <option value="desc">Reverse (DESC)</option>
+</select>
+</div>
+
+<div class="container">
+<button onclick="generateCode()">Generate PHP</button>
+<textarea id="output" readonly placeholder="Generated PHP code will appear here..."></textarea>
+<button onclick="copyCode()">Copy Code</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+function showToast(msg,color="#28a745"){
+  const t=document.getElementById('toast');
+  t.style.background=color;
+  t.innerText=msg;
+  t.style.display='block';
+  setTimeout(()=>t.style.display='none',3000);
+}
+
+function generateCode(){
+  const adminTable = document.getElementById("adminTable").value.trim();
+  const adminColumn = document.getElementById("adminColumn").value.trim();
+  const authFailed = document.getElementById("authFailedMsg").value.trim();
+  const usersTable = document.getElementById("usersTable").value.trim();
+  const noUsers = document.getElementById("noUsersMsg").value.trim();
+  const orderMode = document.getElementById("orderMode").value.trim();
+
+  if(!adminTable || !adminColumn || !authFailed || !usersTable || !noUsers){
+    showToast("Please fill all fields!","#dc3545");
+    return;
+  }
+
+  const php = `<?php
+include 'config.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    echo "Access Denied";
+    exit();
+}
+
+$authHeader = '';
+if(isset($_SERVER['HTTP_AUTHORIZATION'])){
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+} elseif(isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])){
+    $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+}
+
+if($authHeader === ''){
+    echo "${authFailed}";
+    exit();
+}
+
+if(stripos($authHeader,'bearer ')===0){
+    $token = trim(substr($authHeader,7));
+} else {
+    $token = $authHeader;
+}
+
+if($token === ''){
+    echo "${authFailed}";
+    exit();
+}
+
+$stmt = $conn->prepare("SELECT * FROM \`${adminTable}\` WHERE \`${adminColumn}\` = ? LIMIT 1");
+$stmt->bind_param("s",$token);
+$stmt->execute();
+$res = $stmt->get_result();
+
+if($res && $res->num_rows > 0){
+    $userSql = "SELECT * FROM \`${usersTable}\` ORDER BY id ${orderMode}";
+    $usersResult = $conn->query($userSql);
+
+    if($usersResult && $usersResult->num_rows > 0){
+        $rows = [];
+        while($row = $usersResult->fetch_assoc()){
+            $rows[] = $row;
+        }
+        header('Content-Type: application/json');
+        echo json_encode($rows);
+    } else {
+        echo "${noUsers}";
+    }
+
+} else {
+    echo "${authFailed}";
+}
+
+$stmt->close();
+$conn->close();
+?>`;
+
+  document.getElementById("output").value = php;
+}
+
+function copyCode(){
+  const txt = document.getElementById("output");
+  if(!txt.value.trim()){showToast("Nothing to copy!","#dc3545");return;}
+  navigator.clipboard.writeText(txt.value);
+  showToast("Code copied!");
+}
+</script>
+
+
+
+
+
+<div id="footer"></div>
+
+<script>
+fetch('permission.html')
+.then(response => response.text())
+.then(data => document.getElementById('footer').innerHTML = data);
+</script>
+
+
+
+
+
+
+
+</body>
+</html>

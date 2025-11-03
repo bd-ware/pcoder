@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cPanel Instructions Footer</title>
+
+</head>
+<body>
+
+<footer style="background:#fff; border-top:4px solid #3498db; padding:20px 15px; font-family:Arial,sans-serif; box-shadow:0 -2px 6px rgba(0,0,0,0.1); margin-top:25px;">
+    
+    <div style="background:#2c3e50; color:#fff; padding:15px; border-radius:6px; font-family:monospace; font-size:14px; overflow-x:auto;">
+RewriteEngine On<br>
+RewriteCond %{HTTP:Authorization} ^(.*)<br>
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%1]
+    </div>
+    
+    <div style="margin-top:15px; color:#333; font-size:15px;">
+        <strong style="color:#2c3e50; font-size:16px;">How to enable this in cPanel:</strong>
+        <ol style="margin-top:10px; padding-left:18px; line-height:1.6;">
+            <li>Login to your <strong>cPanel</strong> account.</li>
+            <li>Go to <strong>File Manager</strong> → <strong>public_html</strong>.</li>
+            <li>Enable <em>Show Hidden Files</em> from settings.</li>
+            <li>Find <code style="background:#eef2f5; padding:2px 4px; color:#d35400;">.htaccess</code>:
+                <ul style="list-style:disc; margin:6px 0 6px 18px;">
+                    <li>Open it, if already exists.</li>
+                    <li>Or create new via <strong>+File</strong>.</li>
+                </ul>
+            </li>
+            <li>Paste the 3 lines of code at the top.</li>
+            <li>Save file and set permission to <code style="background:#eef2f5; padding:2px 4px; color:#d35400;">644</code>.</li>
+        </ol>
+        <div style="background:#eaf7ff; border-left:4px solid #3498db; padding:10px 12px; font-size:14px; border-radius:4px;">
+            This allows PHP to detect the <code style="background:#eef2f5; padding:2px 4px; color:#d35400;">Authorization</code> header correctly.
+        </div>
+    </div>
+
+</footer>
+</body>
+</html>
